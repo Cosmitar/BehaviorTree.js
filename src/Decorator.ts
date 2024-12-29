@@ -1,4 +1,4 @@
-import { RUNNING } from './constants';
+import { RUNNING, SUCCESS } from './constants';
 import Node from './Node';
 import { Blackboard, RunCallback, DecoratorConfig, RunConfig, DecoratorBlueprint } from './types';
 
@@ -22,12 +22,13 @@ export default class Decorator extends Node {
     const result = this.decorate(
       () => {
         ++runCount;
-        return registryLookUp(this.blueprint.node as Node).run(blackboard, {
+        const node = registryLookUp(this.blueprint.node as Node).run(blackboard, {
           ...config,
           rerun,
           introspector,
           registryLookUp
         });
+        return SUCCESS;
       },
       blackboard,
       this.config

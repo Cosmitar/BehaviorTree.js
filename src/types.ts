@@ -19,7 +19,7 @@ export type RegistryLookUp = (node: NodeOrRegistration) => Node;
 
 export interface IntrospectionResult {
   name?: string;
-  result: Status;
+  result: Status | RunResult;
   children?: IntrospectionResult[];
 }
 
