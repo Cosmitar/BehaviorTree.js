@@ -1,6 +1,6 @@
 import BehaviorTree from './BehaviorTree';
 import Node from './Node';
-import { Blackboard, IntrospectionResult, Status } from './types';
+import { Blackboard, IntrospectionResult, RunResult, Status } from './types';
 
 export default class Introspector {
   currentResult: IntrospectionResult[];
@@ -30,13 +30,13 @@ export default class Introspector {
     this.currentResult.push(this._toResult(node, result, blackboard));
   }
 
-  wrapLast(numResults: number, node: Node, result: Status, blackboard: Blackboard) {
+  wrapLast(numResults: number, node: Node, result: Status | RunResult, blackboard: Blackboard) {
     const children = this.currentResult.splice(this.currentResult.length - numResults, numResults);
     this.currentResult.push({ ...this._toResult(node, result, blackboard), children });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _toResult(node: Node, result: Status, _blackboard: Blackboard): IntrospectionResult {
+  _toResult(node: Node, result: Status | RunResult, _blackboard: Blackboard): IntrospectionResult {
     return { ...(node.name ? { name: node.name } : {}), result };
   }
 

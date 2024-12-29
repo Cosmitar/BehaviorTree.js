@@ -2,6 +2,10 @@
 
 A JavaScript implementation of Behavior Trees. They are useful for implementing AIs. If you need more information about Behavior Trees, look on [GameDevAIPro](https://www.gameaipro.com), there is a nice [article on Behavior Trees from Alex Champandard and Philip Dunstan](https://www.gameaipro.com/GameAIPro/GameAIPro_Chapter06_The_Behavior_Tree_Starter_Kit.pdf).
 
+## TypeScript support?
+
+If you need TypeScript support, please check out the `typescript` branch which will be the upcoming 3.0 release and if you have some questions and comments please make them known.
+
 ## Features
 
 - The needed: Sequences, Selectors, Tasks
@@ -385,15 +389,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## TODO:
 
-- Tests and implementation der Parallel Typen
+- Rewrite README to be typescripty
+- Tests and implementation of Parallel Typs
 - Benchmarking
-- Adden der Parallel Arten zur README
-
-x
-x
-x
-x
-x
-
-x
-x
+- Add Parallel to README

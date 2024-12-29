@@ -266,7 +266,11 @@ describe('Introspector', () => {
     });
   });
 
+<<<<<<< HEAD
   describe.only('with a parallel node', () => {
+=======
+  describe('with a parallel node', () => {
+>>>>>>> feature/importer_improvements
     beforeEach(() => {
       blackboard = {
         start: 0,
