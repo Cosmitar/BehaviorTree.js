@@ -3,7 +3,7 @@ import Introspector from './Introspector';
 import Node from './Node';
 
 export type Status = symbol | boolean;
-export type RunResult = Status | StatusWithState | undefined;
+export type RunResult = Status | StatusWithState | undefined | void;
 
 export interface StatusWithState {
   total: Status;
