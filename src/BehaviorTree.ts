@@ -1,7 +1,7 @@
 import { isRunning } from './helper';
 import Node from './Node';
 import Task from './Task';
-import { Blackboard, NodeOrFunction, NodeOrRegistration, Status, StatusWithState, StepParameter } from './types';
+import { Blackboard, NodeOrFunction, NodeOrRegistration, RunResult, Status, StatusWithState, StepParameter } from './types';
 
 export type NodeRegistry = Record<string, Node>;
 
@@ -25,7 +25,7 @@ export function registryLookUp(node: string | Node) {
 export default class BehaviorTree {
   tree: NodeOrRegistration;
   blackboard: Blackboard;
-  lastResult?: Status | StatusWithState;
+  lastResult?: RunResult;
 
   constructor({ tree, blackboard }: { tree: NodeOrRegistration; blackboard: Blackboard }) {
     this.tree = tree;
