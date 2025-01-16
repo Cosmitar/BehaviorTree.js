@@ -5,13 +5,13 @@ const NOOP_RUN = () => false;
 const NOOP_START = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 const NOOP_END = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 
-export default class Node {
+export default class Node<T extends Blueprint = Blueprint> {
   _name?: string;
-  blueprint: Blueprint;
+  blueprint: T;
   nodeType = 'Node';
 
   constructor({ run = NOOP_RUN, start = NOOP_START, end = NOOP_END, ...props }: MinimalBlueprint) {
-    this.blueprint = { run, start, end, ...props };
+    this.blueprint = { run, start, end, ...props } as T;
   }
 
   run(blackboard: Blackboard, { introspector, rerun = false, registryLookUp = (x) => x as Node, ...config }: RunConfig = {}): RunResult {
