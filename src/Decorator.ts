@@ -22,13 +22,12 @@ export default class Decorator extends Node {
     const result = this.decorate(
       () => {
         ++runCount;
-        const node = registryLookUp(this.blueprint.node as Node).run(blackboard, {
+        return registryLookUp(this.blueprint.node as Node).run(blackboard, {
           ...config,
           rerun,
           introspector,
           registryLookUp
         });
-        return SUCCESS;
       },
       blackboard,
       this.config
