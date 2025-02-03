@@ -26,7 +26,7 @@ export default class Introspector {
     this.currentResult = [];
   }
 
-  push(node: Node, result: Status, blackboard: Blackboard) {
+  push(node: Node, result: RunResult, blackboard: Blackboard) {
     this.currentResult.push(this._toResult(node, result, blackboard));
   }
 
