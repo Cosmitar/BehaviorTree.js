@@ -27,6 +27,6 @@ export default class BlackboardWithListeners<T extends Record<string, unknown>> 
       },
 
       has: (target, property) => Reflect.has(target, property)
-    }) as any as BlackboardWithListeners<T> & { ON_CHANGE: Event<[key: keyof T, bb: T]> };
+    }) as unknown as BlackboardWithListeners<T> & { ON_CHANGE: Event<[key: keyof T, bb: T]> };
   }
 }
