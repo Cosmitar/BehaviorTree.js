@@ -1,3 +1,4 @@
+import Sinon from 'sinon';
 import { FAILURE, RUNNING, SUCCESS } from '../constants';
 import Task from '../Task';
 import type { Blackboard } from '../types';
@@ -55,6 +56,17 @@ describe('BehaviorTree', () => {
       expect(blackboard.start).toEqual(2);
       expect(blackboard.run).toEqual(4);
       expect(blackboard.end).toEqual(2);
+    });
+
+    it('triggers blackboard change event', () => {
+      const evtSpy = Sinon.spy();
+      bTree.ON_BLACKBOARD_CHANGE.subscribe(evtSpy);
+
+      bTree.step();
+
+      expect(evtSpy.callCount).toBe(2);
+      expect(evtSpy.getCall(0).calledWith('start')).toBe(true);
+      expect(evtSpy.getCall(1).calledWith('run')).toBe(true);
     });
   });
 });
