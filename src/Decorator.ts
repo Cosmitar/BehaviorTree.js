@@ -1,4 +1,4 @@
-import { RUNNING, SUCCESS } from './constants';
+import { RUNNING } from './constants';
 import Node from './Node';
 import { Blackboard, RunCallback, DecoratorConfig, RunConfig, DecoratorBlueprint } from './types';
 
