@@ -1,4 +1,5 @@
-import { SUCCESS, RUNNING } from './constants';
+import { RUNNING, SUCCESS } from './constants';
+import type Decorator from './Decorator';
 import { isRunning } from './helper';
 import Node from './Node';
 import { Blackboard, MinimalBlueprint, NodeOrRegistration, RunConfig, RunResult, Status } from './types';
@@ -31,12 +32,17 @@ export default class BranchNode extends Node {
     );
     let currentIndex = 0;
     for (; currentIndex < this.numNodes; ++currentIndex) {
-      if (currentIndex < startingIndex) {
+      const node = registryLookUp(this.nodes[currentIndex]);
+
+      const forceRun =
+        lastRunStates[currentIndex] !== undefined ? (node as Decorator).shouldForceRun?.(lastRunStates[currentIndex], blackboard) : false;
+
+      if (currentIndex < startingIndex && !forceRun) {
         // Keep last result
         results[currentIndex] = lastRunStates[currentIndex];
         continue;
       }
-      const node = registryLookUp(this.nodes[currentIndex]);
+
       const result = node.run(blackboard, { lastRun: lastRunStates[currentIndex], introspector, rerun, registryLookUp });
       results[currentIndex] = result;
 
