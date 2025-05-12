@@ -10,7 +10,7 @@ export interface StatusWithState {
   state: Array<RunResult>;
 }
 
-export type Blackboard = Record<string, any>;
+export type Blackboard<T extends Record<string, any> = Record<string, any>> = T;
 export type DecoratorConfig = Record<string, any>;
 export type EndCallback = (...args: any[]) => void;
 export type RunCallback = (...args: any[]) => RunResult;
