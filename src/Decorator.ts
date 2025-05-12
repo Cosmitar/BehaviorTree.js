@@ -1,6 +1,6 @@
 import { RUNNING } from './constants';
 import Node from './Node';
-import { Blackboard, RunCallback, DecoratorConfig, RunConfig, DecoratorBlueprint } from './types';
+import { Blackboard, DecoratorBlueprint, DecoratorConfig, RunCallback, RunConfig, type RunResult } from './types';
 
 export default class Decorator extends Node {
   config!: DecoratorConfig;
@@ -44,5 +44,12 @@ export default class Decorator extends Node {
 
   setConfig(config: DecoratorConfig) {
     this.config = config;
+  }
+
+  // extend it for custom behavior when a node should run despite being in a final state.
+  // used in GuardDecorator to break the running state.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  shouldForceRun(lastRun: RunResult, bb: Blackboard): boolean {
+    return false;
   }
 }
