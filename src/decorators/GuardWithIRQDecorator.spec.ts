@@ -79,12 +79,9 @@ describe('GuardWithIRQDecorator', () => {
         }
       })
     );
+
     // dumb task for Wait decorator to run
-    const waitingTask = new Task({
-      run() {
-        return SUCCESS;
-      }
-    });
+    const waitingTask = new Task({});
 
     BehaviorTree.register('shortWait', new WaitDecorator({ config: { awaitFor: 1 }, node: waitingTask }));
     BehaviorTree.register('longWait', new WaitDecorator({ config: { awaitFor: 4 }, node: waitingTask }));

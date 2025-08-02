@@ -88,10 +88,10 @@ describe('GuardWithIRQDecorator', () => {
     );
     const waitingTask = new Task({
       start: function () {
-        console.log('waiting task start');
+        console.log('waiting task starts');
       },
-      run() {
-        return SUCCESS;
+      end: function () {
+        console.log('waiting task ends');
       }
     });
 
