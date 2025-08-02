@@ -3,24 +3,24 @@ import Decorator from '../Decorator';
 import type Node from '../Node';
 import { RunCallback, type Blackboard, type MinimalBlueprint } from '../types';
 
-type Config<T> = {
+type Config = {
   awaitFor?: number;
   timeProvider?: () => number;
 };
 
-type WaitDecoratorProps<T> = { config?: Config<T> } & Omit<MinimalBlueprint, 'nodes'>;
+type WaitDecoratorProps = { config?: Config } & Omit<MinimalBlueprint, 'nodes'>;
 
 export const ERROR_NOOP_RUN =
   'WaitDecorator will ignore the run method for a given node. Use start and end as part of the lifecycle of the decorator';
 export const ERROR_SETTING_ON_WAITING = 'Cannot set waitFor while waiting';
 
-export default class WaitDecorator<T extends Blackboard = Blackboard> extends Decorator {
+export default class WaitDecorator extends Decorator {
   isWaiting = false;
   waitingAt = 0;
   nodeType = 'AwaitDecorator';
   node: Node;
 
-  constructor(props: WaitDecoratorProps<T>) {
+  constructor(props: WaitDecoratorProps) {
     super(props);
     if (!props.node) {
       throw new Error('Node is required for WaitDecorator');
