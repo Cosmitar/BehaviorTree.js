@@ -1,15 +1,18 @@
+import { registryLookUp } from './BehaviorTree';
 import Decorator from './Decorator';
+import AlwaysFailDecorator from './decorators/AlwaysFailDecorator';
+import AlwaysSucceedDecorator from './decorators/AlwaysSucceedDecorator';
+import CooldownDecorator from './decorators/CooldownDecorator';
+import GuardDecorator from './decorators/GuardDecorator';
+import InvertDecorator from './decorators/InvertDecorator';
+import LoopDecorator from './decorators/LoopDecorator';
+import WaitDecorator from './decorators/WaitDecorator';
 import Node from './Node';
+import Parallel from './Parallel';
 import Random from './Random';
 import Selector from './Selector';
 import Sequence from './Sequence';
 import Task from './Task';
-import AlwaysFailDecorator from './decorators/AlwaysFailDecorator';
-import AlwaysSucceedDecorator from './decorators/AlwaysSucceedDecorator';
-import CooldownDecorator from './decorators/CooldownDecorator';
-import InvertDecorator from './decorators/InvertDecorator';
-import LoopDecorator from './decorators/LoopDecorator';
-import { registryLookUp } from './BehaviorTree';
 import { ImportableJson } from './types';
 
 export default class BehaviorTreeImporter {
@@ -19,12 +22,15 @@ export default class BehaviorTreeImporter {
     decorator: Decorator,
     selector: Selector,
     sequence: Sequence,
+    parallel: Parallel,
     random: Random,
     invert: InvertDecorator,
     fail: AlwaysFailDecorator,
     succeed: AlwaysSucceedDecorator,
     cooldown: CooldownDecorator,
-    loop: LoopDecorator
+    loop: LoopDecorator,
+    wait: WaitDecorator,
+    guard: GuardDecorator
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
