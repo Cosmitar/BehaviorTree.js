@@ -1,11 +1,11 @@
 /* eslint-env jest */
-import { RUNNING, SUCCESS, FAILURE } from './constants';
 import BehaviorTree from './BehaviorTree';
-import Sequence from './Sequence';
-import Selector from './Selector';
-import Task from './Task';
-import InvertDecorator from './decorators/InvertDecorator';
 import Decorator from './Decorator';
+import Selector from './Selector';
+import Sequence from './Sequence';
+import Task from './Task';
+import { FAILURE, RUNNING, SUCCESS } from './constants';
+import InvertDecorator from './decorators/InvertDecorator';
 import { Blackboard } from './types';
 
 describe('BehaviorTree', () => {

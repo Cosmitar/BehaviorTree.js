@@ -3,7 +3,6 @@
 import BehaviorTree, { BehaviorTreeImporter, Parallel, RUNNING, Sequence, SUCCESS, Task, type Blackboard } from '../src';
 import GuardDecorator, { IRQ_TYPE } from '../src/decorators/GuardDecorator';
 import WaitDecorator from '../src/decorators/WaitDecorator';
-import { log } from '../src/utils/log';
 
 describe('GuardWithIRQDecorator', () => {
   let bTree: BehaviorTree;
@@ -25,11 +24,11 @@ describe('GuardWithIRQDecorator', () => {
       'moveTo',
       new Task({
         start: function () {
-          console.log('starting moveTo');
+          // log('starting moveTo');
         },
         run: function () {
           if (blackboard.moveToPosition !== undefined) {
-            console.log('moving character');
+            // log('moving character');
           }
           // since it's async, we return RUNNING until the character reaches the target position
           return blackboard.moveToPosition !== undefined ? RUNNING : SUCCESS;
@@ -43,7 +42,7 @@ describe('GuardWithIRQDecorator', () => {
       new Task({
         start: function (bb) {
           // run side effect for picking action
-          console.log('picking start');
+          // log('picking start');
           bb.pickedItems += 1;
         },
         run: function () {
@@ -56,12 +55,12 @@ describe('GuardWithIRQDecorator', () => {
       'service:setTarget',
       new Task({
         start: function () {
-          console.log('start setting target position');
+          // log('start setting target position');
         },
         run: function (bb) {
           // find the closest pickable or use any other criteria, and calculate the target position
           if (bb.targetPosition === undefined) {
-            console.log('setting target position');
+            // log('setting target position');
             // pos should be based on pickable target
             bb.targetPosition = { x: Math.random(), y: Math.random() };
             bb.moveToPosition = { x: bb.targetPosition.x - 1, y: bb.targetPosition.y - 1 };
@@ -74,7 +73,7 @@ describe('GuardWithIRQDecorator', () => {
       'service:setRandomPosition',
       new Task({
         start: function () {
-          console.log('setting random position');
+          // log('setting random position');
         },
         run: function (bb) {
           // sets a random target if needed
@@ -88,10 +87,10 @@ describe('GuardWithIRQDecorator', () => {
     );
     const waitingTask = new Task({
       start: function () {
-        console.log('waiting task starts');
+        // log('waiting task starts');
       },
       end: function () {
-        console.log('waiting task ends');
+        // log('waiting task ends');
       }
     });
 
@@ -145,15 +144,15 @@ describe('GuardWithIRQDecorator', () => {
     blackboard.pickableAtSight = false;
     // since pickableAtSight is false, the tree should run the wander sequence
     bTree.step();
-    log(bTree.lastResult);
-    log('end first step');
-    log(blackboard);
+    // log(bTree.lastResult);
+    // log('end first step');
+    // log(blackboard);
 
     //  suppose that now we have a pickable at sight
     blackboard.pickableAtSight = true;
     bTree.step();
-    log(bTree.lastResult);
-    log('end second step');
-    log(blackboard);
+    // log(bTree.lastResult);
+    // log('end second step');
+    // log(blackboard);
   });
 });

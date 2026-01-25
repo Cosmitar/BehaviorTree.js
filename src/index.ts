@@ -15,29 +15,29 @@ import Selector from './Selector';
 import Sequence from './Sequence';
 import Task from './Task';
 
-import { SUCCESS, FAILURE, RUNNING } from './constants';
+import { FAILURE, RUNNING, SUCCESS } from './constants';
 
 export default BehaviorTree;
 
+export * from './types';
 export {
   BehaviorTree,
-  SUCCESS,
-  FAILURE,
-  RUNNING,
-  getRegistry,
-  registryLookUp,
   BehaviorTreeImporter,
   BranchNode,
+  Decorator,
+  decorators,
+  FAILURE,
+  getRegistry,
+  Introspector,
   Node,
   Parallel,
   ParallelComplete,
   ParallelSelector,
+  Random,
+  registryLookUp,
+  RUNNING,
   Selector,
   Sequence,
-  Random,
-  Decorator,
-  Task,
-  Introspector,
-  decorators
+  SUCCESS,
+  Task
 };
-export * from './types';

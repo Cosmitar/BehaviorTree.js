@@ -4,14 +4,15 @@
  * Run with `npx babel-node src/benchmark.js`
  *
  * My last run:
- * without introspection x 111,056 ops/sec ±1.36% (91 runs sampled)
- * with introspection x 48,040 ops/sec ±2.06% (89 runs sampled)
- * task without introspection x 390,802 ops/sec ±0.86% (88 runs sampled)
- * task with introspection x 243,472 ops/sec ±1.20% (93 runs sampled)
+ * without introspection x 4,221,914 ops/sec ±0.54% (99 runs sampled)
+ * with introspection x 1,066,265 ops/sec ±27.80% (72 runs sampled)
+ * task without introspection x 18,541,936 ops/sec ±0.76% (96 runs sampled)
+ * task with introspection x 2,540,779 ops/sec ±48.66% (68 runs sampled)
+ * Fastest is task without introspection
  */
 const Benchmark = require('benchmark');
 
-const { SUCCESS, BehaviorTree, Sequence, Task, Introspector, Decorator } = require('./index.node.js');
+const { SUCCESS, BehaviorTree, Sequence, Task, Introspector, Decorator } = require('../lib/index.js');
 
 const suite = new Benchmark.Suite();
 

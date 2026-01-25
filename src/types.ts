@@ -34,6 +34,7 @@ export interface MinimalBlueprint {
   start?: StartCallback;
   nodes?: NodeOrRegistration[];
   node?: NodeOrRegistration;
+  config?: DecoratorConfig;
 }
 export interface Blueprint {
   name?: string;
@@ -44,6 +45,7 @@ export interface Blueprint {
   nodes?: NodeOrRegistration[];
   node?: NodeOrRegistration;
 }
+
 export interface DecoratorBlueprint extends MinimalBlueprint {
   config?: DecoratorConfig;
 }
@@ -68,4 +70,6 @@ export interface ImportableJson {
   name?: string;
   node?: ImportableJson;
   nodes?: ImportableJson[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // Allow additional properties like decorator configs.
 }

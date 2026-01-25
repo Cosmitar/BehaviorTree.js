@@ -1,4 +1,3 @@
-import { expect } from '@jest/globals';
 import { FAILURE, RUNNING, SUCCESS } from '../constants';
 import Task from '../Task';
 import type { Blackboard, RunResult } from '../types';
