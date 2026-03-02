@@ -1,4 +1,3 @@
-import { registryLookUp } from './BehaviorTree';
 import Decorator from './Decorator';
 import AlwaysFailDecorator from './decorators/AlwaysFailDecorator';
 import AlwaysSucceedDecorator from './decorators/AlwaysSucceedDecorator';
@@ -13,7 +12,7 @@ import Random from './Random';
 import Selector from './Selector';
 import Sequence from './Sequence';
 import Task from './Task';
-import { ImportableJson } from './types';
+import { ImportableJson, type NodeOrFunction } from './types';
 
 export default class BehaviorTreeImporter {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,22 +37,30 @@ export default class BehaviorTreeImporter {
     this.types[type] = Klass;
   }
 
-  parse(json: ImportableJson): Node {
+  parse(
+    json: ImportableJson,
+    nodeLookup?: (name: string) => Node | ((...args: unknown[]) => unknown)
+  ): NodeOrFunction {
     const { type, name, ...config } = json;
     const Klass = this.types[type];
     if (!Klass) {
-      const registeredNode = registryLookUp(type);
-      if (registeredNode) {
-        registeredNode.name = name;
+      if (!nodeLookup) {
+        throw new Error(`Don't know how to handle type ${type}. Please register this first.`);
+      }
+      const registeredNode = nodeLookup(type);
+      if (typeof registeredNode === 'function') {
         return registeredNode;
+      } else if (registeredNode) {
+        (registeredNode as Node).name = name;
+        return registeredNode as Node;
       }
       throw new Error(`Don't know how to handle type ${type}. Please register this first.`);
     }
 
     return new Klass({
       name: name,
-      node: json.node ? this.parse(json.node) : null,
-      nodes: json.nodes ? json.nodes.map((subJson: ImportableJson) => this.parse(subJson)) : null,
+      node: json.node ? this.parse(json.node, nodeLookup) : null,
+      nodes: json.nodes ? json.nodes.map((subJson: ImportableJson) => this.parse(subJson, nodeLookup)) : null,
       config
     });
   }

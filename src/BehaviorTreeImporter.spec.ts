@@ -1,12 +1,12 @@
 /* eslint-env jest */
 import sinon from 'sinon';
-import { SUCCESS, FAILURE } from './constants';
 import BehaviorTree from './BehaviorTree';
 import BehaviorTreeImporter from './BehaviorTreeImporter';
+import { FAILURE, SUCCESS } from './constants';
 import Decorator from './Decorator';
-import Task from './Task';
 import Introspector from './Introspector';
-import { Blackboard, IntrospectionResult, RunCallback } from './types';
+import Task from './Task';
+import { Blackboard, IntrospectionResult, RunCallback, type NodeOrRegistration } from './types';
 
 class EnemyInSightDecorator extends Decorator {
   nodeType = 'EnemyInSightDecorator';
@@ -20,13 +20,16 @@ describe('BehaviorTreeImporter', () => {
   let clock: sinon.SinonFakeTimers;
   let blackboard: Blackboard;
   let importer: BehaviorTreeImporter;
+  let bTree: BehaviorTree;
 
   beforeEach(() => {
     clock = sinon.useFakeTimers();
     blackboard = {
       timesJumped: 0
     };
-    BehaviorTree.register(
+    bTree = new BehaviorTree();
+    bTree.setBlackboard(blackboard);
+    bTree.registerNode(
       'walk',
       new Task({
         run: function (blackboard) {
@@ -35,8 +38,7 @@ describe('BehaviorTreeImporter', () => {
         }
       })
     );
-
-    BehaviorTree.register(
+    bTree.registerNode(
       'idle',
       new Task({
         run: function (blackboard) {
@@ -45,8 +47,7 @@ describe('BehaviorTreeImporter', () => {
         }
       })
     );
-
-    BehaviorTree.register(
+    bTree.registerNode(
       'jump',
       new Task({
         run: function (blackboard) {
@@ -78,15 +79,41 @@ describe('BehaviorTreeImporter', () => {
         { type: 'idle', name: 'doing nothing' }
       ]
     };
-    let bTree: BehaviorTree;
     let introspector: Introspector;
 
     beforeEach(() => {
       introspector = new Introspector();
-      bTree = new BehaviorTree({
-        tree: importer.parse(json),
-        blackboard
-      });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      bTree.registerNode(
+        'walk',
+        new Task({
+          run: function (blackboard) {
+            blackboard.walking = true;
+            return SUCCESS;
+          }
+        })
+      );
+      bTree.registerNode(
+        'idle',
+        new Task({
+          run: function (blackboard) {
+            blackboard.walking = false;
+            return SUCCESS;
+          }
+        })
+      );
+      bTree.registerNode(
+        'jump',
+        new Task({
+          run: function (blackboard) {
+            blackboard.timesJumped++;
+            return SUCCESS;
+          }
+        })
+      );
+      const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
+      bTree.setTree(importer.parse(json, nodeLookup) as NodeOrRegistration);
     });
 
     it('works', () => {

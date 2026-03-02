@@ -1,9 +1,9 @@
 /* eslint-env jest */
 import sinon from 'sinon';
-import { RUNNING, SUCCESS, FAILURE } from '../constants';
-import CooldownDecorator from './CooldownDecorator';
+import { FAILURE, RUNNING, SUCCESS } from '../constants';
 import Task from '../Task';
 import { Blackboard } from '../types';
+import CooldownDecorator from './CooldownDecorator';
 
 describe('CooldownDecorator', () => {
   const task = new Task({

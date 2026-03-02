@@ -1,9 +1,15 @@
-import { registryLookUp } from '../BehaviorTree';
+import { identityLookUp } from '../helper';
 import type Node from '../Node';
 import type { NodeOrRegistration, RunResult, Status, StatusWithState } from '../types';
 
-export function buildResultsTree(targetNode: Node, xTree: NodeOrRegistration, lastResult: RunResult, nextStatus: Status): RunResult {
-  const tree = registryLookUp(xTree);
+export function buildResultsTree(
+  targetNode: Node,
+  xTree: NodeOrRegistration,
+  lastResult: RunResult,
+  nextStatus: Status,
+  registryLookUp = identityLookUp
+): RunResult {
+  const tree = registryLookUp(xTree) as Node;
 
   let nodeFound = false;
   function traverseAndBuild(nodes: NodeOrRegistration[] | undefined, lastState: RunResult[] = []): RunResult[] {
@@ -13,7 +19,7 @@ export function buildResultsTree(targetNode: Node, xTree: NodeOrRegistration, la
 
     for (let index = 0; index < nodes.length; index++) {
       const xNode = nodes[index];
-      const node = registryLookUp(xNode);
+      const node = registryLookUp(xNode) as Node;
 
       // Initialize the result node based on lastState
       const defaultResult = lastState[index];

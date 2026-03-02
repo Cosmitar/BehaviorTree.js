@@ -1,4 +1,4 @@
-import BehaviorTree, { getRegistry, registryLookUp } from './BehaviorTree';
+import BehaviorTree, { Registry } from './BehaviorTree';
 import * as decorators from './decorators';
 
 import BehaviorTreeImporter from './BehaviorTreeImporter';
@@ -16,6 +16,8 @@ import Sequence from './Sequence';
 import Task from './Task';
 
 import { FAILURE, RUNNING, SUCCESS } from './constants';
+import type { WaitDecorator } from './decorators';
+import GuardDecorator from './decorators/GuardDecorator';
 
 export default BehaviorTree;
 
@@ -27,17 +29,18 @@ export {
   Decorator,
   decorators,
   FAILURE,
-  getRegistry,
+  GuardDecorator,
   Introspector,
   Node,
   Parallel,
   ParallelComplete,
   ParallelSelector,
   Random,
-  registryLookUp,
+  Registry,
   RUNNING,
   Selector,
   Sequence,
   SUCCESS,
-  Task
+  Task,
+  WaitDecorator
 };

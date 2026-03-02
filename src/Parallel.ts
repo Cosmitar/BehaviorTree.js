@@ -1,8 +1,7 @@
-import { FAILURE, SUCCESS, RUNNING } from './constants';
 import BranchNode from './BranchNode';
-import Node from './Node';
-import { isRunning } from './helper';
-import { ParallelRunConfig, RunResult, StatusWithState, Blackboard, MinimalBlueprint, NodeOrRegistration } from './types';
+import { FAILURE, RUNNING, SUCCESS } from './constants';
+import { identityLookUp, isRunning } from './helper';
+import { Blackboard, MinimalBlueprint, NodeOrRegistration, ParallelRunConfig, RunResult, StatusWithState } from './types';
 
 /**
  * The Parallel node runs all of its children in parallel and stops running if all of the children are
@@ -21,7 +20,7 @@ export default class Parallel extends BranchNode {
     this.numNodes = this.nodes.length;
   }
 
-  run(blackboard: Blackboard = {}, { lastRun, introspector, rerun, registryLookUp = (x) => x as Node }: ParallelRunConfig = {}) {
+  run(blackboard: Blackboard = {}, { lastRun, introspector, rerun, registryLookUp = identityLookUp }: ParallelRunConfig = {}) {
     if (!rerun) this.blueprint.start(blackboard);
     const results: Array<RunResult> = [];
     for (let currentIndex = 0; currentIndex < this.numNodes; ++currentIndex) {
@@ -51,7 +50,7 @@ export default class Parallel extends BranchNode {
     if (results.includes(FAILURE)) {
       return FAILURE;
     }
-    const running = !!results.find((x) => isRunning(x));
+    const running = results.find(isRunning) !== undefined;
     return running ? { total: RUNNING, state: results } : SUCCESS;
   }
 }

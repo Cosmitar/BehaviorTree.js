@@ -5,11 +5,11 @@ import Selector from './Selector';
 import Sequence from './Sequence';
 import Task from './Task';
 import { FAILURE, RUNNING, SUCCESS } from './constants';
-import InvertDecorator from './decorators/InvertDecorator';
+import { InvertDecorator } from './decorators';
 import { Blackboard } from './types';
 
 describe('BehaviorTree', () => {
-  let bTree: BehaviorTree;
+  const bTree: BehaviorTree = new BehaviorTree();
   let blackboard: Blackboard;
   describe('with a medium complex tree', () => {
     const aTask = new Task({
@@ -48,7 +48,9 @@ describe('BehaviorTree', () => {
         switchCounter: 0,
         switchResult: RUNNING
       };
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.reset();
+      bTree.setTree(tree);
+      bTree.setBlackboard(blackboard);
     });
 
     it('controls stepping with running and stuff', () => {
@@ -113,7 +115,9 @@ describe('BehaviorTree', () => {
           ++blackboard.end;
         }
       });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.reset();
+      bTree.setTree(tree);
+      bTree.setBlackboard(blackboard);
     });
 
     it('running does not call start multiple times', () => {
@@ -143,78 +147,83 @@ describe('BehaviorTree', () => {
       expect(blackboard.run).toEqual(4);
       expect(blackboard.end).toEqual(2);
     });
-  });
 
-  describe('with the simplest tree possible', () => {
-    beforeEach(() => {
-      blackboard = {
-        start: 0,
-        run: 0,
-        end: 0,
-        result: RUNNING
-      };
-      const tree = new Task({
-        start: function (blackboard) {
-          ++blackboard.start;
-        },
-        run: function (blackboard) {
-          ++blackboard.run;
-          return blackboard.result;
-        },
-        end: function (blackboard) {
-          ++blackboard.end;
-        }
+    describe('with the simplest tree possible', () => {
+      beforeEach(() => {
+        blackboard = {
+          start: 0,
+          run: 0,
+          end: 0,
+          result: RUNNING
+        };
+        const tree = new Task({
+          start: function (blackboard) {
+            ++blackboard.start;
+          },
+          run: function (blackboard) {
+            ++blackboard.run;
+            return blackboard.result;
+          },
+          end: function (blackboard) {
+            ++blackboard.end;
+          }
+        });
+        bTree.reset();
+        bTree.setTree(tree);
+        bTree.setBlackboard(blackboard);
       });
-      bTree = new BehaviorTree({ tree, blackboard });
-    });
 
-    it('running does not call start multiple times', () => {
-      bTree.step();
+      it('running does not call start multiple times', () => {
+        bTree.step();
 
-      expect(blackboard.start).toEqual(1);
-      expect(blackboard.run).toEqual(1);
-      expect(blackboard.end).toEqual(0);
+        expect(blackboard.start).toEqual(1);
+        expect(blackboard.run).toEqual(1);
+        expect(blackboard.end).toEqual(0);
 
-      bTree.step();
+        bTree.step();
 
-      expect(blackboard.start).toEqual(1);
-      expect(blackboard.run).toEqual(2);
-      expect(blackboard.end).toEqual(0);
+        expect(blackboard.start).toEqual(1);
+        expect(blackboard.run).toEqual(2);
+        expect(blackboard.end).toEqual(0);
 
-      blackboard.result = FAILURE;
-      bTree.step();
+        blackboard.result = FAILURE;
+        bTree.step();
 
-      expect(blackboard.start).toEqual(1);
-      expect(blackboard.run).toEqual(3);
-      expect(blackboard.end).toEqual(1);
+        expect(blackboard.start).toEqual(1);
+        expect(blackboard.run).toEqual(3);
+        expect(blackboard.end).toEqual(1);
 
-      blackboard.result = SUCCESS;
-      bTree.step();
+        blackboard.result = SUCCESS;
+        bTree.step();
 
-      expect(blackboard.start).toEqual(2);
-      expect(blackboard.run).toEqual(4);
-      expect(blackboard.end).toEqual(2);
+        expect(blackboard.start).toEqual(2);
+        expect(blackboard.run).toEqual(4);
+        expect(blackboard.end).toEqual(2);
+      });
     });
   });
 
   describe('registering of tasks', () => {
     beforeEach(() => {
+      bTree.destroy();
       blackboard = {
         taskA: 0,
         taskB: 0,
         taskC: 0,
         result: RUNNING
       };
-      BehaviorTree.register(
+      bTree.setBlackboard(blackboard);
+      bTree.registerAction('actionA', (blackboard) => {
+        ++blackboard.taskA;
+        return SUCCESS;
+      });
+      bTree.registerNode(
         'taskA',
         new Task({
-          run: function (blackboard) {
-            ++blackboard.taskA;
-            return SUCCESS;
-          }
+          run: 'actionA'
         })
       );
-      BehaviorTree.register(
+      bTree.registerNode(
         'taskB',
         new Task({
           run: function (blackboard) {
@@ -226,12 +235,11 @@ describe('BehaviorTree', () => {
     });
 
     it('looks up previously registered tasks', () => {
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: new Sequence({
+      bTree.setTree(
+        new Sequence({
           nodes: ['taskA', 'taskB', 'taskA']
         })
-      });
+      );
       bTree.step();
 
       expect(blackboard.taskA).toEqual(1);
@@ -239,16 +247,17 @@ describe('BehaviorTree', () => {
     });
 
     it('can use function-shortcut to create tasks with only a run method', () => {
-      BehaviorTree.register('taskC', () => {
+      bTree.registerNode('taskC', () => {
         ++blackboard.taskC;
         return FAILURE;
       });
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: new Sequence({
+
+      bTree.setTree(
+        new Sequence({
           nodes: ['taskA', 'taskC', 'taskB']
         })
-      });
+      );
+
       bTree.step();
 
       expect(blackboard.taskA).toEqual(1);
@@ -257,31 +266,29 @@ describe('BehaviorTree', () => {
     });
 
     it('can be erased', () => {
-      BehaviorTree.cleanRegistry();
+      bTree.reset();
 
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: new Selector({
+      bTree.setTree(
+        new Sequence({
           nodes: ['taskA', 'taskC', 'taskB']
         })
-      });
+      );
 
       expect(() => {
         bTree.step();
-      }).toThrowError('No node with name taskA registered.');
+      }).toThrowError('Missing registry entry: taskA');
     });
 
     it('can load tree directly as registered sequence', () => {
-      BehaviorTree.register(
+      bTree.registerNode(
         'awesome behavior',
         new Sequence({
           nodes: ['taskA', 'taskB', 'taskA']
         })
       );
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: 'awesome behavior'
-      });
+
+      bTree.setTree('awesome behavior');
+
       bTree.step();
 
       expect(blackboard.taskA).toEqual(1);
@@ -289,25 +296,25 @@ describe('BehaviorTree', () => {
     });
 
     it('looks up previously registered sequences with sub sequences as well', () => {
-      BehaviorTree.register(
+      bTree.registerNode(
         'mySubSequence',
         new Sequence({
           nodes: ['taskA', 'taskB', 'taskA']
         })
       );
 
-      BehaviorTree.register(
+      bTree.registerNode(
         'mySequence',
         new Sequence({
           nodes: ['mySubSequence', 'taskB']
         })
       );
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: new Sequence({
+
+      bTree.setTree(
+        new Sequence({
           nodes: ['mySequence']
         })
-      });
+      );
       bTree.step();
 
       expect(blackboard.taskA).toEqual(1);
@@ -315,16 +322,42 @@ describe('BehaviorTree', () => {
     });
 
     it('looks up previously registered task within a decorators', () => {
-      bTree = new BehaviorTree({
-        blackboard,
-        tree: new Selector({
+      bTree.setTree(
+        new Selector({
           nodes: [new InvertDecorator({ node: 'taskA' }), 'taskB']
         })
-      });
+      );
       bTree.step();
 
       expect(blackboard.taskA).toEqual(1);
       expect(blackboard.taskB).toEqual(1);
+    });
+
+    it('looks up registered taks with registered callbacks', () => {
+      bTree.registerAction('startA', (blackboard) => {
+        ++blackboard.taskA;
+      });
+      bTree.registerAction('endA', (blackboard) => {
+        ++blackboard.taskA;
+      });
+      bTree.registerAction('runA', (blackboard) => {
+        ++blackboard.taskA;
+        return SUCCESS;
+      });
+
+      bTree.registerNode(
+        'taskAWithCallbacks',
+        new Task({
+          start: 'startA',
+          end: 'endA',
+          run: 'runA'
+        })
+      );
+
+      bTree.setTree('taskAWithCallbacks');
+      bTree.step();
+
+      expect(blackboard.taskA).toEqual(3);
     });
   });
 
@@ -366,7 +399,6 @@ describe('BehaviorTree', () => {
           return SUCCESS;
         }
       });
-
       const decoratedTask2 = new Decorator({
         start: function (blackboard) {
           ++blackboard.startDeco;
@@ -376,7 +408,6 @@ describe('BehaviorTree', () => {
         },
         node: task2
       });
-
       const sequence = new Sequence({
         start: function (blackboard) {
           ++blackboard.startSeq;
@@ -386,6 +417,7 @@ describe('BehaviorTree', () => {
         },
         nodes: [task1, decoratedTask2, task3]
       });
+      bTree.reset();
       const blackboard: Blackboard = {
         task2Result: RUNNING,
         start1: 0,
@@ -402,70 +434,48 @@ describe('BehaviorTree', () => {
         startDeco: 0,
         endDeco: 0
       };
-
-      const bTree = new BehaviorTree({
-        tree: sequence,
-        blackboard
-      });
-
+      bTree.setBlackboard(blackboard);
+      bTree.setTree(sequence);
       bTree.step();
-
       expect(blackboard.startSeq).toEqual(1);
       expect(blackboard.endSeq).toEqual(0);
-
       expect(blackboard.startDeco).toEqual(1);
       expect(blackboard.endDeco).toEqual(0);
-
       expect(blackboard.start1).toEqual(1);
       expect(blackboard.run1).toEqual(1);
       expect(blackboard.end1).toEqual(1);
-
       expect(blackboard.start2).toEqual(1);
       expect(blackboard.run2).toEqual(1);
       expect(blackboard.end2).toEqual(0);
-
       expect(blackboard.start3).toEqual(0);
       expect(blackboard.run3).toEqual(0);
       expect(blackboard.end3).toEqual(0);
-
       bTree.step();
-
       expect(blackboard.startSeq).toEqual(1);
       expect(blackboard.endSeq).toEqual(0);
-
       expect(blackboard.startDeco).toEqual(1);
       expect(blackboard.endDeco).toEqual(0);
-
       expect(blackboard.start1).toEqual(1);
       expect(blackboard.run1).toEqual(1);
       expect(blackboard.end1).toEqual(1);
-
       expect(blackboard.start2).toEqual(1);
       expect(blackboard.run2).toEqual(2);
       expect(blackboard.end2).toEqual(0);
-
       expect(blackboard.start3).toEqual(0);
       expect(blackboard.run3).toEqual(0);
       expect(blackboard.end3).toEqual(0);
-
       blackboard.task2Result = SUCCESS;
-
       bTree.step();
-
       expect(blackboard.startSeq).toEqual(1);
       expect(blackboard.endSeq).toEqual(1);
-
       expect(blackboard.startDeco).toEqual(1);
       expect(blackboard.endDeco).toEqual(1);
-
       expect(blackboard.start1).toEqual(1);
       expect(blackboard.run1).toEqual(1);
       expect(blackboard.end1).toEqual(1);
-
       expect(blackboard.start2).toEqual(1);
       expect(blackboard.run2).toEqual(3);
       expect(blackboard.end2).toEqual(1);
-
       expect(blackboard.start3).toEqual(1);
       expect(blackboard.run3).toEqual(1);
       expect(blackboard.end3).toEqual(1);
@@ -500,11 +510,9 @@ describe('BehaviorTree', () => {
         }
       });
     }
-
     it('start of second sequence is called after first reruns', () => {
       const a1 = createTask('a1');
       const b1 = createTask('b1');
-
       const aSeq = new Sequence({
         nodes: [a1]
       });
@@ -518,25 +526,16 @@ describe('BehaviorTree', () => {
         result: {},
         running: {} as Record<string, boolean>
       };
-
-      const bTree = new BehaviorTree({
-        tree: cSeq,
-        blackboard
-      });
-
+      bTree.setBlackboard(blackboard);
+      bTree.setTree(cSeq);
       blackboard.running.a1 = true;
-
       bTree.step();
-
       expect(blackboard.result).toEqual({
         a1start: 1,
         a1run: 1
       });
-
       blackboard.running.a1 = false;
-
       bTree.step();
-
       expect(blackboard.result).toEqual({
         a1start: 1,
         a1run: 2,

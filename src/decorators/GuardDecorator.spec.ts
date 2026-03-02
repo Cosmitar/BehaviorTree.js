@@ -26,11 +26,11 @@ describe('GuardDecorator', () => {
     guardedDefaultTask = new GuardDecorator({ config: {}, node: taskNextResult });
   });
 
-  it('should return node result when condition is not provided', () => {
+  it('should return FAILURE result when neither condition nor controlKey is provided', () => {
     blackboard.nodeNextResult = SUCCESS;
     const result = guardedDefaultTask.run(blackboard);
 
-    expect(result).toBe(SUCCESS);
+    expect(result).toBe(FAILURE);
   });
 
   it('should return node result when condition matches', () => {

@@ -12,7 +12,7 @@ import Node from './Node';
 import { Blackboard } from './types';
 
 describe('Introspector', () => {
-  let bTree: BehaviorTree;
+  const bTree = new BehaviorTree();
   let blackboard: Blackboard;
   let introspector: Introspector;
   const simpleTask = new Task({
@@ -41,9 +41,11 @@ describe('Introspector', () => {
     }
   });
 
-  BehaviorTree.register('simpleTask', simpleTask);
-  BehaviorTree.register('failingTask', failingTask);
-  BehaviorTree.register('runningTask', runningTask);
+  function registerTasks() {
+    bTree.registerNode('simpleTask', simpleTask);
+    bTree.registerNode('failingTask', failingTask);
+    bTree.registerNode('runningTask', runningTask);
+  }
 
   beforeEach(() => {
     blackboard = {
@@ -63,7 +65,10 @@ describe('Introspector', () => {
 
   describe('with the simplest tree possible', () => {
     beforeEach(() => {
-      bTree = new BehaviorTree({ tree: 'simpleTask', blackboard });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
+      bTree.setTree('simpleTask');
     });
 
     it('puts in the result of the last run', () => {
@@ -112,7 +117,9 @@ describe('Introspector', () => {
         result: SUCCESS
       };
 
-      bTree = new BehaviorTree({ tree: new Task({ run: () => RUNNING }), blackboard });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      bTree.setTree(new Task({ run: () => RUNNING }));
     });
 
     it('does not print a name', () => {
@@ -136,7 +143,10 @@ describe('Introspector', () => {
         result: SUCCESS
       };
 
-      bTree = new BehaviorTree({ tree: new Sequence({ nodes: ['simpleTask'] }), blackboard });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
+      bTree.setTree(new Sequence({ nodes: ['simpleTask'] }));
     });
 
     it('does not print a name', () => {
@@ -165,8 +175,11 @@ describe('Introspector', () => {
         end: 0,
         result: SUCCESS
       };
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
       const tree = new InvertDecorator({ name: 'inverter', node: 'simpleTask' });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
     });
 
     it('shows Task and Decorator', () => {
@@ -196,11 +209,14 @@ describe('Introspector', () => {
         end: 0,
         result: SUCCESS
       };
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
     });
 
     it('does not show task that did not run', () => {
       const tree = new Selector({ name: 'select', nodes: ['simpleTask', 'failingTask'] });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
 
       bTree.step({ introspector });
 
@@ -221,7 +237,7 @@ describe('Introspector', () => {
 
     it('show all tasks if all did run', () => {
       const tree = new Selector({ name: 'select', nodes: ['failingTask', 'simpleTask'] });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
 
       bTree.step({ introspector });
 
@@ -246,7 +262,7 @@ describe('Introspector', () => {
 
     it('does not show more then was running', () => {
       const tree = new Selector({ name: 'select', nodes: ['runningTask', 'simpleTask'] });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
 
       bTree.step({ introspector });
 
@@ -274,11 +290,14 @@ describe('Introspector', () => {
         end: 0,
         result: SUCCESS
       };
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
     });
 
     it('shows all tasks that did and did not run', () => {
       const tree = new Parallel({ name: 'parallel', nodes: ['runningTask', 'simpleTask'] });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
 
       bTree.step({ introspector });
 
@@ -310,6 +329,9 @@ describe('Introspector', () => {
         end: 0,
         result: SUCCESS
       };
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
     });
 
     it('shows all that did run', () => {
@@ -318,7 +340,7 @@ describe('Introspector', () => {
       const selector2 = new Selector({ name: 'select2', nodes: [invertedSimple, 'simpleTask', 'failingTask'] });
 
       const tree = new Sequence({ name: 'sequence', nodes: [selector1, selector2] });
-      bTree = new BehaviorTree({ tree, blackboard });
+      bTree.setTree(tree);
 
       bTree.step({ introspector });
 
@@ -375,7 +397,10 @@ describe('Introspector', () => {
         end: 0,
         result: SUCCESS
       };
-      bTree = new BehaviorTree({ tree: new Random({ nodes: ['simpleTask', 'failingTask'] }), blackboard });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
+      bTree.setTree(new Random({ nodes: ['simpleTask', 'failingTask'] }));
     });
 
     it('cleans the results', () => {
@@ -396,7 +421,10 @@ describe('Introspector', () => {
 
   describe('.reset method', () => {
     it('cleans the results', () => {
-      bTree = new BehaviorTree({ tree: 'simpleTask', blackboard: {} });
+      bTree.reset();
+      bTree.setBlackboard({});
+      registerTasks();
+      bTree.setTree('simpleTask');
       bTree.step({ introspector });
 
       expect(introspector.lastResult).not.toEqual(null);
@@ -435,7 +463,10 @@ describe('Introspector', () => {
     });
 
     it('also has the blackboard available', () => {
-      bTree = new BehaviorTree({ tree: new Sequence({ nodes: ['simpleTask', 'failingTask'] }), blackboard });
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      registerTasks();
+      bTree.setTree(new Sequence({ nodes: ['simpleTask', 'failingTask'] }));
       bTree.step({ introspector });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((introspector.lastResult?.children || []).map((x: any) => x.blackboardChanged)).toEqual([true, false]);

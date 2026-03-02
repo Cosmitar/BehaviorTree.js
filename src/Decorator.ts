@@ -1,8 +1,9 @@
 import { RUNNING } from './constants';
+import { identityLookUp } from './helper';
 import Node from './Node';
-import { Blackboard, DecoratorBlueprint, DecoratorConfig, RunCallback, RunConfig, type RunResult } from './types';
+import { Blackboard, DecoratorBlueprint, DecoratorConfig, RunCallback, RunConfig, type ActivableDecorator } from './types';
 
-export default class Decorator extends Node {
+export default class Decorator extends Node implements ActivableDecorator {
   config!: DecoratorConfig;
   nodeType = 'Decorator';
 
@@ -16,7 +17,7 @@ export default class Decorator extends Node {
     return run(run, blackboard, config);
   }
 
-  run(blackboard: Blackboard, { introspector, rerun, registryLookUp = (x) => x as Node, ...config }: RunConfig = {}) {
+  run(blackboard: Blackboard, { introspector, rerun, registryLookUp = identityLookUp, ...config }: RunConfig = {}) {
     if (!rerun) this.blueprint.start(blackboard);
     let runCount = 0;
     const result = this.decorate(
@@ -46,10 +47,8 @@ export default class Decorator extends Node {
     this.config = config;
   }
 
-  // extend it for custom behavior when a node should run despite being in a final state.
-  // used in GuardDecorator to break the running state.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  shouldForceRun(lastRun: RunResult, bb: Blackboard): boolean {
-    return false;
+  abort(blackboard: Blackboard, { lastRun, registryLookUp = identityLookUp }: RunConfig = {}) {
+    const child = registryLookUp(this.blueprint.node as Node);
+    child.abort(blackboard, { registryLookUp, lastRun });
   }
 }
