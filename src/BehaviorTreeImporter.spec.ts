@@ -6,7 +6,7 @@ import { FAILURE, SUCCESS } from './constants';
 import Decorator from './Decorator';
 import Introspector from './Introspector';
 import Task from './Task';
-import { Blackboard, IntrospectionResult, RunCallback, type NodeOrRegistration } from './types';
+import { Blackboard, IntrospectionResult, RunCallback } from './types';
 
 class EnemyInSightDecorator extends Decorator {
   nodeType = 'EnemyInSightDecorator';
@@ -113,7 +113,7 @@ describe('BehaviorTreeImporter', () => {
         })
       );
       const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
-      bTree.setTree(importer.parse(json, nodeLookup) as NodeOrRegistration);
+      bTree.setTree(importer.parse(json, nodeLookup));
     });
 
     it('works', () => {
@@ -145,6 +145,76 @@ describe('BehaviorTreeImporter', () => {
 
       selectorNodes = introspector.lastResult?.children || [];
       expect(selectorNodes.map((x) => x.result)).toEqual([false, true]);
+    });
+  });
+
+  describe('task with start/run/end/abort callbacks defined as actions via registerAction', () => {
+    const json = {
+      type: 'task',
+      name: 'actionTask',
+      start: 'onStart',
+      run: 'doRun',
+      end: 'onEnd',
+      abort: 'onAbort'
+    };
+
+    it('invokes start, run, and end callbacks when task runs to completion', () => {
+      const startSpy = sinon.spy();
+      const runSpy = sinon.spy(() => SUCCESS);
+      const endSpy = sinon.spy();
+      const abortSpy = sinon.spy();
+
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      bTree.registerAction('onStart', startSpy);
+      bTree.registerAction('doRun', runSpy);
+      bTree.registerAction('onEnd', endSpy);
+      bTree.registerAction('onAbort', abortSpy);
+
+      const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
+      bTree.setTree(importer.parse(json, nodeLookup));
+
+      bTree.step();
+
+      expect(startSpy.calledOnce).toBe(true);
+      expect(startSpy.calledWith(blackboard)).toBe(true);
+      expect(runSpy.calledOnce).toBe(true);
+      expect(runSpy.firstCall.args).toContainEqual(blackboard);
+      expect(endSpy.calledOnce).toBe(true);
+      expect(endSpy.calledWith(blackboard)).toBe(true);
+      expect(abortSpy.called).toBe(false);
+    });
+
+    it('invokes abort callback when task is aborted', () => {
+      const startSpy = sinon.spy();
+      const runSpy = sinon.spy(() => FAILURE);
+      const endSpy = sinon.spy();
+      const abortSpy = sinon.spy();
+
+      bTree.reset();
+      bTree.setBlackboard(blackboard);
+      bTree.registerAction('onStart', startSpy);
+      bTree.registerAction('doRun', runSpy);
+      bTree.registerAction('onEnd', endSpy);
+      bTree.registerAction('onAbort', abortSpy);
+
+      const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
+      const taskNode = importer.parse(json, nodeLookup);
+      bTree.setTree(taskNode);
+
+      const registryLookUp = <T>(el: T | string): T => {
+        try {
+          return bTree.actionRegistry.get(el as string) as T;
+        } catch {
+          return bTree.nodeRegistry.get(el as import('./types').NodeOrRegistration) as T;
+        }
+      };
+
+      bTree.step();
+      (taskNode as import('./Node').default).abort(blackboard, { registryLookUp });
+
+      expect(abortSpy.calledOnce).toBe(true);
+      expect(abortSpy.calledWith(blackboard)).toBe(true);
     });
   });
 });
