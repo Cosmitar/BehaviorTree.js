@@ -31,7 +31,7 @@ export default class GuardDecorator<T extends Blackboard = Blackboard> extends D
 
   defaultValidator(bb: T): boolean {
     const controlKey = (this.config as Config<T>).controlKey;
-    return controlKey !== undefined && bb[controlKey] === true;
+    return controlKey !== undefined && Boolean(bb[controlKey]);
   }
 
   setConfig({ condition, ...config }: Config<T>) {
