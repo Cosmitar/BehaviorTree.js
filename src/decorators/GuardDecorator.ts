@@ -40,14 +40,11 @@ export default class GuardDecorator<T extends Blackboard = Blackboard> extends D
   }
 
   decorate(run: RunCallback, blackboard: Blackboard, config: DecoratorConfig): RunResult {
-    let result: RunResult = FAILURE;
-
-    if (config.condition?.(blackboard)) {
-      result = run();
+    if (config.condition?.(blackboard) || config.rerun) {
+      return run();
     }
 
-    this.lastResult = result;
-    return result;
+    return FAILURE;
   }
 
   // overwrite

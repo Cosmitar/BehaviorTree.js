@@ -31,7 +31,7 @@ export default class Decorator extends Node implements ActivableDecorator {
         });
       },
       blackboard,
-      this.config
+      { ...this.config, rerun }
     );
 
     if (result !== RUNNING) {
