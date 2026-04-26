@@ -4,6 +4,7 @@ import BehaviorTree from './BehaviorTree';
 import BehaviorTreeImporter from './BehaviorTreeImporter';
 import { FAILURE, SUCCESS } from './constants';
 import Decorator from './Decorator';
+import type WaitDecorator from './decorators/WaitDecorator';
 import Introspector from './Introspector';
 import Task from './Task';
 import { Blackboard, IntrospectionResult, RunCallback } from './types';
@@ -215,6 +216,21 @@ describe('BehaviorTreeImporter', () => {
 
       expect(abortSpy.calledOnce).toBe(true);
       expect(abortSpy.calledWith(blackboard)).toBe(true);
+    });
+  });
+
+  describe('importing a wait decorator with configuration', () => {
+    const json = {
+      type: 'wait',
+      name: 'waiting',
+      awaitFor: 1,
+      node: { type: 'idle', name: 'idling' }
+    };
+
+    it('imports the wait decorator with the correct configuration', () => {
+      const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
+      const waitNode = importer.parse(json, nodeLookup);
+      expect((waitNode as WaitDecorator).config.awaitFor).toBe(1);
     });
   });
 });

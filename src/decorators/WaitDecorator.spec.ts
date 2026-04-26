@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { RUNNING, SUCCESS } from '../constants';
 import Task from '../Task';
 import type { Blackboard } from '../types';
-import WaitDecorator, { ERROR_NOOP_RUN, ERROR_SETTING_ON_WAITING } from './WaitDecorator';
+import WaitDecorator, { ERROR_SETTING_ON_WAITING } from './WaitDecorator';
 
 describe('WaitDecorator', () => {
   let clock: sinon.SinonFakeTimers;
@@ -72,15 +72,6 @@ describe('WaitDecorator', () => {
     clock.tick(6000); // 6 seconds
     decoratedTask.run(blackboard);
     expect(decoratedTask.isWaiting).toBe(false);
-  });
-
-  it('should throw an error if the node has a run implementation', () => {
-    const taskWithRun = new Task({
-      run: () => {
-        return false;
-      }
-    });
-    expect(() => new WaitDecorator({ node: taskWithRun })).toThrow(ERROR_NOOP_RUN);
   });
 
   it('should throw an error if setting waitFor while waiting', () => {

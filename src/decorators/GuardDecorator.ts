@@ -40,11 +40,13 @@ export default class GuardDecorator<T extends Blackboard = Blackboard> extends D
   }
 
   decorate(run: RunCallback, blackboard: Blackboard, config: DecoratorConfig): RunResult {
-    if (config.condition?.(blackboard) || config.rerun) {
-      return run();
+    if (this.config.IRQType === IRQ_TYPE.BREAK || this.config.IRQType === IRQ_TYPE.BOTH) {
+      if (!config.condition?.(blackboard)) return FAILURE;
     }
-
-    return FAILURE;
+    if (this.config.IRQType === IRQ_TYPE.CATCH) {
+      if (!config.condition?.(blackboard) && !config.rerun) return FAILURE;
+    }
+    return run();
   }
 
   // overwrite

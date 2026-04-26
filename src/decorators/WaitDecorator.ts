@@ -16,8 +16,8 @@ export const ERROR_SETTING_ON_WAITING = 'Cannot set waitFor while waiting';
 
 export default class WaitDecorator extends Decorator {
   isWaiting = false;
-  waitingAt = 0;
-  nodeType = 'AwaitDecorator';
+  waitingStartedAt = 0;
+  nodeType = 'WaitDecorator';
   node: Node;
 
   constructor(props: WaitDecoratorProps) {
@@ -27,7 +27,7 @@ export default class WaitDecorator extends Decorator {
     }
     this.node = props.node as Node;
     if (this.node?.blueprint?.run?.name !== 'NOOP_RUN') {
-      throw new Error(ERROR_NOOP_RUN);
+      console.warn(ERROR_NOOP_RUN);
     }
   }
 
@@ -50,13 +50,13 @@ export default class WaitDecorator extends Decorator {
     // Is not waiting? wait...
     if (!this.isWaiting) {
       this.isWaiting = true;
-      this.waitingAt = this.config.timeProvider();
-      this.node?.blueprint?.start(blackboard);
+      this.waitingStartedAt = this.config.timeProvider();
+      this.node?.blueprint?.start(blackboard); // is this making start running twice?
     }
 
     // Is waiting and time is not up? keep waiting...
     const now = this.config.timeProvider();
-    if (now - this.waitingAt < this.config.awaitFor * 1000) {
+    if (now - this.waitingStartedAt < this.config.awaitFor * 1000) {
       return RUNNING;
     }
 

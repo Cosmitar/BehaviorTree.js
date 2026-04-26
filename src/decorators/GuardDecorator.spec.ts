@@ -1,4 +1,4 @@
-import { FAILURE, RUNNING, SUCCESS } from '../constants';
+import { RUNNING, SUCCESS } from '../constants';
 import Task from '../Task';
 import type { Blackboard, RunResult } from '../types';
 import GuardDecorator from './GuardDecorator';
@@ -26,11 +26,11 @@ describe('GuardDecorator', () => {
     guardedDefaultTask = new GuardDecorator({ config: {}, node: taskNextResult });
   });
 
-  it('should return FAILURE result when neither condition nor controlKey is provided', () => {
+  it('should return node result when neither condition nor controlKey is provided', () => {
     blackboard.nodeNextResult = SUCCESS;
     const result = guardedDefaultTask.run(blackboard);
 
-    expect(result).toBe(FAILURE);
+    expect(result).toBe(SUCCESS);
   });
 
   it('should return node result when condition matches', () => {
@@ -41,12 +41,12 @@ describe('GuardDecorator', () => {
     expect(result).toBe(RUNNING);
   });
 
-  it('should return FAILURE when condition does not match', () => {
-    blackboard.nodeNextResult = SUCCESS; // guard will fail and this will be ignored
+  it('should return node result when condition does not match and IRQ is not set', () => {
+    blackboard.nodeNextResult = SUCCESS;
     blackboard.shouldPass = false;
     const result = guardedTask.run(blackboard);
 
-    expect(result).toBe(FAILURE);
+    expect(result).toBe(SUCCESS);
   });
 
   it('should emulate moveTo node', () => {
@@ -68,12 +68,12 @@ describe('GuardDecorator', () => {
 
     // at some point the target is reached and removed from the blackboard
     bb.targetToMove = undefined;
-    bb.nodeNextResult = SUCCESS; // guard will fail and this will be ignored
+    bb.nodeNextResult = SUCCESS;
 
     // the tree run is called arbitrarily
     const result2 = guardedTask.run(bb);
 
-    expect(result2).toBe(FAILURE);
-    expect(bb.count).toBe(1);
+    expect(result2).toBe(SUCCESS);
+    expect(bb.count).toBe(2);
   });
 });

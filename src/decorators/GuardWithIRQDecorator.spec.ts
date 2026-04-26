@@ -157,12 +157,13 @@ describe('GuardWithIRQDecorator', () => {
     bTree.step();
     expect(bTree.lastResult).toMatchObject({
       state: [
+        false, // pick item guard fails after break
         {
-          state: [true, expect.any(Object)]
+          state: [true, { state: [RUNNING] }] // fallback wander branch runs
         }
       ]
     });
-    expect((bTree.lastResult as { state: unknown[] }).state).toHaveLength(1);
+    expect((bTree.lastResult as { state: unknown[] }).state).toHaveLength(2);
   });
 
   it('catches in low priority nodes', () => {
@@ -235,12 +236,13 @@ describe('GuardWithIRQDecorator', () => {
       bTree.step();
       expect(bTree.lastResult).toMatchObject({
         state: [
+          false, // pick item guard fails after break
           {
-            state: [true, expect.any(Object)]
+            state: [true, { state: [RUNNING] }] // fallback wander branch runs
           }
         ]
       });
-      expect((bTree.lastResult as { state: unknown[] }).state).toHaveLength(1);
+      expect((bTree.lastResult as { state: unknown[] }).state).toHaveLength(2);
     });
 
     it('does NOT catch when condition is gained while running low-priority branch', () => {
@@ -352,6 +354,66 @@ describe('GuardWithIRQDecorator', () => {
     });
   });
 
+  it('aborts running descendant node when condition is lost with BREAK IRQ', () => {
+    // another test that should pass
+    const bb2 = {
+      targetAtSight: true,
+      chaseAbortCount: 0
+    };
+    const tree2 = new BehaviorTree();
+    const importer = new BehaviorTreeImporter();
+    const nodeLookup = (name: string) => tree2.nodeRegistry.get(name);
+    const jsonTree = {
+      name: 'root',
+      type: 'selector',
+      nodes: [
+        {
+          name: '45907125-3bf5-4e2f-8638-a945a3a1c9cb',
+          type: 'selector',
+          nodes: [
+            {
+              name: 'isTargetAtSight',
+              type: 'guard',
+              controlKey: 'targetAtSight',
+              IRQType: 'BREAK',
+              // onIRQ: '',
+
+              node: {
+                name: 'Chase',
+                type: 'Chase'
+              }
+            },
+            {
+              name: 'Wait',
+              type: 'task'
+            }
+          ]
+        }
+      ]
+    };
+    tree2.registerNode(
+      'Chase',
+      new Task({
+        run: function () {
+          return RUNNING;
+        },
+        abort: function (bb) {
+          bb.chaseAbortCount = (bb.chaseAbortCount || 0) + 1;
+        }
+      })
+    );
+    tree2.setBlackboard(bb2);
+    tree2.setTree(importer.parse(jsonTree, nodeLookup) as NodeOrRegistration);
+    const introspector = new Introspector();
+    tree2.step({ introspector });
+    expect(tree2.lastResult).toMatchObject({ state: [{ state: [RUNNING] }] });
+
+    bb2.targetAtSight = false;
+    tree2.step({ introspector });
+    expect(tree2.lastResult).toBe(false);
+    expect(bb2.chaseAbortCount).toBe(1);
+  });
+
   describe('IRQ_TYPE.NONE', () => {
     beforeEach(() => {
       createTreeWithConfig(blackboard, bTree, GuardDecorator.IRQ_TYPE.NONE);
@@ -370,15 +432,18 @@ describe('GuardWithIRQDecorator', () => {
       });
     });
 
-    it('does NOT catch when condition is gained while running low-priority branch', () => {
+    it('switches to guarded branch without IRQ catch when condition is gained', () => {
       blackboard.pickableAtSight = false;
       bTree.step();
-      expect(bTree.lastResult).toMatchObject({ state: [false, expect.any(Object)] });
+      expect(bTree.lastResult).toMatchObject({
+        state: [{ state: [true, { state: [RUNNING] }] }]
+      });
 
       blackboard.pickableAtSight = true;
       bTree.step();
+      expect(blackboard.moveToAbortCount).toBeUndefined();
       expect(bTree.lastResult).toMatchObject({
-        state: [false, { state: [true, { state: [RUNNING] }] }]
+        state: [{ state: [true, { state: [RUNNING] }] }]
       });
     });
   });
