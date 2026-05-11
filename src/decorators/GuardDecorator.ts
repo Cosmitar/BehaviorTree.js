@@ -40,12 +40,21 @@ export default class GuardDecorator<T extends Blackboard = Blackboard> extends D
   }
 
   decorate(run: RunCallback, blackboard: Blackboard, config: DecoratorConfig): RunResult {
+    // classic guard
+    if (this.config.IRQType === IRQ_TYPE.NONE && !this.config.condition?.(blackboard) && !config.rerun) {
+      return FAILURE;
+    }
+
+    // interrupt/break guard
     if (this.config.IRQType === IRQ_TYPE.BREAK || this.config.IRQType === IRQ_TYPE.BOTH) {
       if (!config.condition?.(blackboard)) return FAILURE;
     }
-    if (this.config.IRQType === IRQ_TYPE.CATCH) {
+
+    // interrupt/catch guard
+    if (this.config.IRQType === IRQ_TYPE.CATCH || this.config.IRQType === IRQ_TYPE.BOTH) {
       if (!config.condition?.(blackboard) && !config.rerun) return FAILURE;
     }
+
     return run();
   }
 

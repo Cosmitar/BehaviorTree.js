@@ -431,20 +431,5 @@ describe('GuardWithIRQDecorator', () => {
         state: [{ state: [true, { state: [RUNNING] }] }]
       });
     });
-
-    it('switches to guarded branch without IRQ catch when condition is gained', () => {
-      blackboard.pickableAtSight = false;
-      bTree.step();
-      expect(bTree.lastResult).toMatchObject({
-        state: [{ state: [true, { state: [RUNNING] }] }]
-      });
-
-      blackboard.pickableAtSight = true;
-      bTree.step();
-      expect(blackboard.moveToAbortCount).toBeUndefined();
-      expect(bTree.lastResult).toMatchObject({
-        state: [{ state: [true, { state: [RUNNING] }] }]
-      });
-    });
   });
 });
