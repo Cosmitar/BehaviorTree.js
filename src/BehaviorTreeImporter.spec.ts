@@ -57,6 +57,15 @@ describe('BehaviorTreeImporter', () => {
         }
       })
     );
+    bTree.registerNode(
+      'wait_task',
+      new Task({
+        start: function (blackboard) {
+          blackboard.waiting = true;
+          return SUCCESS;
+        }
+      })
+    );
     importer = new BehaviorTreeImporter();
     importer.defineType('ifEnemyInSight', EnemyInSightDecorator);
   });
@@ -113,6 +122,7 @@ describe('BehaviorTreeImporter', () => {
           }
         })
       );
+
       const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
       bTree.setTree(importer.parse(json, nodeLookup));
     });
@@ -224,7 +234,22 @@ describe('BehaviorTreeImporter', () => {
       type: 'wait',
       name: 'waiting',
       awaitFor: 1,
-      node: { type: 'idle', name: 'idling' }
+      node: { type: 'wait_task', name: 'idling' }
+    };
+
+    it('imports the wait decorator with the correct configuration', () => {
+      const nodeLookup = (name: string) => bTree.nodeRegistry.get(name);
+      const waitNode = importer.parse(json, nodeLookup);
+      expect((waitNode as WaitDecorator).config.awaitFor).toBe(1);
+    });
+  });
+
+  describe('importing a wait decorator with registered task node', () => {
+    const json = {
+      type: 'wait',
+      name: 'waiting',
+      awaitFor: 1,
+      node: { type: 'wait_task', name: 'waiting' }
     };
 
     it('imports the wait decorator with the correct configuration', () => {

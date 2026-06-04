@@ -166,6 +166,47 @@ describe('GuardWithIRQDecorator', () => {
     expect((bTree.lastResult as { state: unknown[] }).state).toHaveLength(2);
   });
 
+  it('calls start on the guarded node when interruptor gives it focus via catch', () => {
+    let attackStartCount = 0;
+    const bb = { targetAtRange: false };
+    const tree = new BehaviorTree();
+    const importer = new BehaviorTreeImporter();
+    const nodeLookup = (name: string) => tree.nodeRegistry.get(name);
+    const jsonTree = {
+      name: 'root',
+      type: 'selector',
+      nodes: [
+        {
+          name: 'isTargetAtRange',
+          type: 'guard',
+          controlKey: 'targetAtRange',
+          IRQType: 'CATCH',
+          node: { name: 'Attack', type: 'Attack' }
+        },
+        { name: 'Wait', type: 'Wait' }
+      ]
+    };
+    tree.registerNode(
+      'Attack',
+      new Task({
+        start: () => {
+          attackStartCount += 1;
+        },
+        run: () => RUNNING
+      })
+    );
+    tree.registerNode('Wait', new Task({ run: () => RUNNING }));
+    tree.setBlackboard(bb);
+    tree.setTree(importer.parse(jsonTree, nodeLookup) as NodeOrRegistration);
+
+    tree.step();
+    expect(attackStartCount).toBe(0);
+
+    bb.targetAtRange = true;
+    tree.step();
+    expect(attackStartCount).toBe(1);
+  });
+
   it('catches in low priority nodes', () => {
     // initial condition to enter WANDERING branch
     blackboard.pickableAtSight = false;

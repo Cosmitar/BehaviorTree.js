@@ -49,6 +49,7 @@ export default class BranchNode extends Node {
           registryLookUp,
           lastRun: lastRunStates[startingIndex]
         });
+        rerun = false;
       }
 
       const result = node.run(blackboard, {
